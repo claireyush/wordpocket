@@ -6,7 +6,8 @@ import { X } from "lucide-react-native";
 import { Input } from "@/components/ui/Input";
 import { Label } from "@/components/ui/Label";
 import { ConfirmDialog } from "@/components/feedback/ConfirmDialog";
-import { useCard, useUpdateCard, useDeleteCard } from "@/hooks/useCards";
+import { SettingsRow } from "@/components/forms/SettingsRow";
+import { useCard, useUpdateCard, useDeleteCard, useSetCardSuspended } from "@/hooks/useCards";
 import { colors } from "@/lib/theme";
 
 export default function EditCardPage() {
@@ -14,6 +15,7 @@ export default function EditCardPage() {
   const { data: card } = useCard(cardId);
   const updateCard = useUpdateCard();
   const deleteCard = useDeleteCard();
+  const setSuspended = useSetCardSuspended();
 
   const [word, setWord] = useState("");
   const [meaning, setMeaning] = useState("");
@@ -32,6 +34,12 @@ export default function EditCardPage() {
   }, [card]);
 
   const loading = updateCard.isPending;
+  const isSuspended = card?.card_states?.[0]?.status === "suspended";
+
+  const handleToggleSuspend = () => {
+    if (setSuspended.isPending) return;
+    setSuspended.mutate({ id: cardId!, deckId: deckId!, suspended: !isSuspended });
+  };
 
   const handleSubmit = () => {
     if (!word.trim() || !meaning.trim()) return;
@@ -64,7 +72,17 @@ export default function EditCardPage() {
           <View><Label>발음</Label><Input value={pronunciation} onChangeText={setPronunciation} /></View>
           <View><Label>유의어</Label><Input value={synonyms} onChangeText={setSynonyms} placeholder="쉼표로 구분" /></View>
           <View><Label>태그</Label><Input value={tags} onChangeText={setTags} placeholder="쉼표로 구분" /></View>
-          <Pressable onPress={() => setDeleteOpen(true)} className="mt-6 py-3 items-center rounded-xl">
+          <View className="mt-4">
+            <SettingsRow
+              label="복습에서 제외"
+              description="켜면 학습과 복습 큐에 나오지 않아요"
+              toggle
+              toggleOn={isSuspended}
+              noBorder
+              onPress={handleToggleSuspend}
+            />
+          </View>
+          <Pressable onPress={() => setDeleteOpen(true)} className="mt-2 py-3 items-center rounded-xl">
             <Text className="text-body-md font-semibold text-danger">카드 삭제</Text>
           </Pressable>
         </ScrollView>

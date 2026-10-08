@@ -14,6 +14,7 @@ const badgeVariants = cva(
         learning: "bg-warning/10",
         upcoming: "bg-bg-subtle",
         memorized: "bg-accent-bg",
+        suspended: "bg-bg-subtle",
       },
     },
     defaultVariants: {
@@ -31,6 +32,7 @@ const textVariants = cva("text-[10px] font-semibold", {
       learning: "text-warning",
       upcoming: "text-text-secondary",
       memorized: "text-accent",
+      suspended: "text-text-tertiary",
     },
   },
   defaultVariants: {

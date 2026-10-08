@@ -23,7 +23,7 @@ export function useCard(cardId: string | undefined) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("cards")
-        .select("*")
+        .select("*, card_states(status)")
         .eq("id", cardId!)
         .single();
       if (error) throw error;
@@ -69,6 +69,35 @@ export function useUpdateCard() {
     onSuccess: (_data, { deckId }) => {
       qc.invalidateQueries({ queryKey: ["cards", deckId] });
       qc.invalidateQueries({ queryKey: ["cards", "detail"] });
+    },
+  });
+}
+
+export function useSetCardSuspended() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      id,
+      suspended,
+    }: {
+      id: string;
+      deckId: string;
+      suspended: boolean;
+    }) => {
+      const { error } = await supabase.rpc("set_card_suspended", {
+        p_card_id: id,
+        p_suspended: suspended,
+      });
+      if (error) throw error;
+    },
+    onSuccess: (_data, { deckId }) => {
+      qc.invalidateQueries({ queryKey: ["cards", deckId] });
+      qc.invalidateQueries({ queryKey: ["cards", "detail"] });
+      qc.invalidateQueries({ queryKey: ["deck-progress"] });
+      qc.invalidateQueries({ queryKey: ["study-queue", deckId] });
+      qc.invalidateQueries({ queryKey: ["review-only-queue", deckId] });
+      qc.invalidateQueries({ queryKey: ["folder-review-queue"] });
+      qc.invalidateQueries({ queryKey: ["range-review-queue"] });
     },
   });
 }
