@@ -4,11 +4,16 @@ interface PronunciationResult {
   source: "dictionary-api"
 }
 
+// 사전 API가 522 등으로 응답을 끌면 기다리지 않고 TTS로 넘어가기 위한 제한 시간
+const DICTIONARY_TIMEOUT_MS = 1500
+
 export async function fetchPronunciation(
   word: string,
 ): Promise<PronunciationResult> {
+  // 타임아웃은 throw → 캐시되지 않아 다음 재생 때 다시 시도
   const res = await fetch(
     `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`,
+    { signal: AbortSignal.timeout(DICTIONARY_TIMEOUT_MS) },
   )
   if (!res.ok) {
     return { audioUrl: null, phonetic: null, source: "dictionary-api" }
@@ -40,7 +45,17 @@ export function playAudioUrl(url: string, signal?: AbortSignal): Promise<void> {
 
     const audio = new Audio(url)
 
+    // 녹음 파일이 제한 시간 안에 재생 시작하지 않으면 실패 처리 → TTS로 진행
+    const startTimer = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort)
+      audio.pause()
+      audio.removeAttribute("src")
+      reject(new Error("Audio start timeout"))
+    }, DICTIONARY_TIMEOUT_MS)
+    audio.addEventListener("playing", () => clearTimeout(startTimer), { once: true })
+
     const onAbort = () => {
+      clearTimeout(startTimer)
       audio.pause()
       audio.removeAttribute("src")
       reject(new DOMException("Aborted", "AbortError"))
@@ -52,10 +67,12 @@ export function playAudioUrl(url: string, signal?: AbortSignal): Promise<void> {
       resolve()
     })
     audio.addEventListener("error", () => {
+      clearTimeout(startTimer)
       signal?.removeEventListener("abort", onAbort)
       reject(new Error("Audio playback failed"))
     })
     audio.play().catch((err) => {
+      clearTimeout(startTimer)
       signal?.removeEventListener("abort", onAbort)
       reject(err)
     })

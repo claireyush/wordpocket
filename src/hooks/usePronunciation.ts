@@ -36,11 +36,15 @@ export function usePronunciation(word: string) {
       const isPhrase = word.includes(" ")
 
       if (!isPhrase) {
-        const data = await queryClient.fetchQuery({
-          queryKey: ["pronunciation", word],
-          queryFn: () => fetchPronunciation(word),
-          staleTime: Infinity,
-        })
+        // 타임아웃·네트워크 에러면 녹음 없이 TTS로 진행
+        const data = await queryClient
+          .fetchQuery({
+            queryKey: ["pronunciation", word],
+            queryFn: () => fetchPronunciation(word),
+            staleTime: Infinity,
+            retry: false,
+          })
+          .catch(() => null)
 
         if (controller.signal.aborted) return
 
