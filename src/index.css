@@ -4,6 +4,13 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/* 온글잎 긍정(보이저엑스, 눈누 CDN). 굵기 1종이라 굵게는 브라우저가 흉내 낸다. 한글·영문·숫자 모두 포함 */
+@font-face {
+  font-family: "Ownglyph_positive";
+  font-display: swap;
+  src: url("https://cdn.jsdelivr.net/gh/projectnoonnu/2604-1@1.1/Ownglyph_positive.woff2") format("woff2");
+}
+
 @theme inline {
   /* ── Soft Focus v2.1 design tokens ── */
 
@@ -46,10 +53,11 @@
   --color-border-subtle: #F0EEF6;
 
   /* Fonts */
-  --font-display: 'Outfit', -apple-system, sans-serif;
-  --font-body: 'Outfit', -apple-system, sans-serif;
-  --font-korean: 'Pretendard Variable', 'Pretendard', -apple-system, sans-serif;
-  --font-mono: 'JetBrains Mono', Menlo, monospace;
+  /* 전부 온글잎 긍정. 용도별 토큰은 나중에 다시 나눌 수 있게 유지 */
+  --font-display: 'Ownglyph_positive', 'Apple SD Gothic Neo', -apple-system, sans-serif;
+  --font-body: 'Ownglyph_positive', 'Apple SD Gothic Neo', -apple-system, sans-serif;
+  --font-korean: 'Ownglyph_positive', 'Apple SD Gothic Neo', -apple-system, sans-serif;
+  --font-mono: 'Ownglyph_positive', 'Apple SD Gothic Neo', -apple-system, sans-serif;
 
   /* Font sizes (Typography tokens) */
   --font-size-display-xl: 32px;
