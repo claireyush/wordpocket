@@ -6,7 +6,8 @@ import CardForm from "@/components/forms/CardForm"
 import type { CardFormData } from "@/components/forms/CardForm"
 import ConfirmDialog from "@/components/feedback/ConfirmDialog"
 import PageContent from "@/components/layouts/PageContent"
-import { useCard, useCreateCard, useUpdateCard, useDeleteCard } from "@/hooks/useCards"
+import SettingsRow from "@/components/forms/SettingsRow"
+import { useCard, useCreateCard, useUpdateCard, useDeleteCard, useSetCardSuspended } from "@/hooks/useCards"
 
 export default function CardFormPage() {
   const { id: deckId, cardId } = useParams<{ id: string; cardId: string }>()
@@ -16,10 +17,23 @@ export default function CardFormPage() {
   const createCard = useCreateCard()
   const updateCard = useUpdateCard()
   const deleteCard = useDeleteCard()
+  const setSuspended = useSetCardSuspended()
   const [key, setKey] = useState(0)
   const [deleteOpen, setDeleteOpen] = useState(false)
 
   const loading = createCard.isPending || updateCard.isPending
+  const isSuspended = card?.card_states?.[0]?.status === "suspended"
+
+  const handleToggleSuspend = () => {
+    if (setSuspended.isPending) return
+    setSuspended.mutate(
+      { id: cardId!, deckId: deckId!, suspended: !isSuspended },
+      {
+        onSuccess: () =>
+          toast.success(isSuspended ? "복습에 다시 포함했어요" : "복습에서 제외했어요"),
+      },
+    )
+  }
 
   const handleSubmit = (data: CardFormData) => {
     const tags = data.tags
@@ -94,6 +108,13 @@ export default function CardFormPage() {
       {isEdit && (
         <>
           <PageContent className="pt-0 mt-6 pb-10">
+            <SettingsRow
+              label="복습에서 제외"
+              description="켜면 학습과 복습 큐에 나오지 않아요"
+              toggle
+              toggleOn={isSuspended}
+              onPress={handleToggleSuspend}
+            />
             <button
               className="w-full py-3 rounded-[14px] typo-body-md text-danger font-semibold transition-colors active:bg-danger/10"
               onClick={() => setDeleteOpen(true)}

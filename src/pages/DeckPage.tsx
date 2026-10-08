@@ -41,7 +41,7 @@ import { mapCardStatus } from "@/lib/utils";
 import { toast } from "sonner";
 import { downloadCsv } from "@/lib/csvExporter";
 
-const DISPLAY_STATUS_ORDER: Record<string, number> = { unknown: 0, learning: 1, upcoming: 2, memorized: 3 };
+const DISPLAY_STATUS_ORDER: Record<string, number> = { unknown: 0, learning: 1, upcoming: 2, memorized: 3, suspended: 4 };
 
 const SORT_OPTIONS = [
   { value: "created", label: "추가일순", description: "최신 먼저" },

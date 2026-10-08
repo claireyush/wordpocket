@@ -13,6 +13,7 @@ const badgeVariants = cva(
         learning: "bg-warning/10 text-warning",
         upcoming: "bg-bg-subtle text-text-secondary",
         memorized: "bg-accent-bg text-accent",
+        suspended: "bg-bg-subtle text-text-tertiary",
       },
     },
     defaultVariants: {
