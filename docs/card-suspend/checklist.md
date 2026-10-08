@@ -18,4 +18,4 @@
 ## Phase 4. 검증
 - [x] 웹 `npm run build` 통과
 - [x] 모바일 `npx tsc --noEmit` 통과
-- [ ] `supabase db push`로 마이그레이션 적용
+- [x] `supabase db push`로 마이그레이션 적용
