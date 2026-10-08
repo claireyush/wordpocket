@@ -36,6 +36,13 @@ export const useAuthStore = create<AuthState>((set) => ({
       if (event === 'PASSWORD_RECOVERY') {
         set({ passwordRecovery: true });
       }
+      // 로컬 개발 전용 자동 로그인. 프로덕션 빌드에서는 DEV가 false라 통째로 제거됨
+      if (import.meta.env.DEV && event === 'INITIAL_SESSION' && !session) {
+        const email = import.meta.env.VITE_DEV_LOGIN_EMAIL;
+        const password = import.meta.env.VITE_DEV_LOGIN_PASSWORD;
+        // 콜백 안에서 supabase 호출을 바로 await하면 교착될 수 있어 다음 틱으로 미룸
+        if (email && password) setTimeout(() => supabase.auth.signInWithPassword({ email, password }), 0);
+      }
     });
   },
 
