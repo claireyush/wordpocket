@@ -62,7 +62,53 @@ export function playAudioUrl(url: string, signal?: AbortSignal): Promise<void> {
   })
 }
 
-export function speakWord(word: string, signal?: AbortSignal): Promise<void> {
+// Apple 기기에서 받은 고품질 음성(Premium > Enhanced)을 우선 선택. 없으면 null → 브라우저 기본 음성
+const VOICE_QUALITY_KEYWORDS: [string[], number][] = [
+  [["premium", "프리미엄"], 2],
+  [["enhanced", "향상"], 1],
+]
+
+export function pickPreferredVoice(
+  voices: SpeechSynthesisVoice[],
+): SpeechSynthesisVoice | null {
+  let best: SpeechSynthesisVoice | null = null
+  let bestScore = 0
+  for (const v of voices) {
+    if (!v.lang.toLowerCase().startsWith("en")) continue
+    const id = `${v.name} ${v.voiceURI}`.toLowerCase()
+    const quality =
+      VOICE_QUALITY_KEYWORDS.find(([keys]) => keys.some((k) => id.includes(k)))?.[1] ?? 0
+    if (quality === 0) continue
+    const score = quality * 10 + (v.lang.replace("_", "-") === "en-US" ? 1 : 0)
+    if (score > bestScore) {
+      best = v
+      bestScore = score
+    }
+  }
+  return best
+}
+
+// Chrome은 첫 getVoices() 호출 시 빈 배열을 주므로 voiceschanged를 잠깐 기다림
+function loadVoices(timeoutMs = 1000): Promise<SpeechSynthesisVoice[]> {
+  const synth = window.speechSynthesis
+  const voices = synth.getVoices()
+  if (voices.length > 0) return Promise.resolve(voices)
+  return new Promise((resolve) => {
+    const done = () => {
+      synth.removeEventListener("voiceschanged", done)
+      clearTimeout(timer)
+      resolve(synth.getVoices())
+    }
+    const timer = setTimeout(done, timeoutMs)
+    synth.addEventListener("voiceschanged", done)
+  })
+}
+
+export async function speakWord(word: string, signal?: AbortSignal): Promise<void> {
+  const voice = window.speechSynthesis
+    ? pickPreferredVoice(await loadVoices())
+    : null
+
   return new Promise((resolve, reject) => {
     if (!window.speechSynthesis) {
       reject(new Error("SpeechSynthesis not supported"))
@@ -77,7 +123,8 @@ export function speakWord(word: string, signal?: AbortSignal): Promise<void> {
     window.speechSynthesis.cancel()
 
     const utterance = new SpeechSynthesisUtterance(word)
-    utterance.lang = "en-US"
+    utterance.lang = voice?.lang ?? "en-US"
+    if (voice) utterance.voice = voice
     utterance.rate = 0.9
     utterance.onend = () => resolve()
     utterance.onerror = (e) => {
