@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 const MEMORIZED_INTERVAL_THRESHOLD = 7
 
-export type CardDisplayStatus = "unknown" | "learning" | "upcoming" | "memorized"
+export type CardDisplayStatus = "unknown" | "learning" | "upcoming" | "memorized" | "suspended"
 
 export function mapCardStatus(
   dbStatus: string | undefined,
@@ -15,6 +15,7 @@ export function mapCardStatus(
   stepIndex: number | undefined,
 ): CardDisplayStatus {
   if (!dbStatus || dbStatus === "new") return "unknown"
+  if (dbStatus === "suspended") return "suspended"
   if (dbStatus === "learning") {
     return (stepIndex ?? 0) === 0 ? "unknown" : "learning"
   }

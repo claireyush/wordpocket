@@ -16,6 +16,7 @@ const statusLabel: Record<CardDisplayStatus, string> = {
   learning: "배우는중",
   upcoming: "복습예정",
   memorized: "암기완료",
+  suspended: "제외됨",
 }
 
 export default function CardListItem({ word, meaning, status, showCheckbox, checked }: CardListItemProps) {
