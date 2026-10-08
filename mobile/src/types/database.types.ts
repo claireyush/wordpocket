@@ -368,6 +368,10 @@ export type Database = {
         }[]
       }
       get_streak: { Args: never; Returns: Json }
+      set_card_suspended: {
+        Args: { p_card_id: string; p_suspended: boolean }
+        Returns: undefined
+      }
       get_study_queue: {
         Args: { p_deck_id: string; p_limit?: number }
         Returns: {
